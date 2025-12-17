@@ -1,6 +1,9 @@
 // Main application logic
+import 'bulma/css/bulma.css';
+import '@fortawesome/fontawesome-free/css/all.css';
+import './style.css';
 import { parseMarkdown } from './parser.js';
-import { generateCSV } from './csv-generator.js';
+import { downloadAnkiPackage } from './apkg-generator.js';
 
 // State
 let cards = [];
@@ -19,10 +22,7 @@ const mainContent = document.getElementById('mainContent');
 const cardCount = document.getElementById('cardCount');
 const cardList = document.getElementById('cardList');
 const previewContainer = document.getElementById('previewContainer');
-const downloadBtn = document.getElementById('downloadBtn');
-const copyFrontBtn = document.getElementById('copyFrontBtn');
-const copyBackBtn = document.getElementById('copyBackBtn');
-const copyCssBtn = document.getElementById('copyCssBtn');
+
 const tabs = document.querySelectorAll('.tabs li');
 
 // Init
@@ -134,37 +134,26 @@ tabs.forEach(tab => {
     });
 });
 
-// Download
-downloadBtn.addEventListener('click', () => {
-    const csv = generateCSV(cards);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'anki_cards.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-});
-
-// Copy Buttons
-const copyToClipboard = async (text, btn) => {
-    if (!text) {
-        alert('Nothing to copy. Templates might not be loaded.');
+const downloadApkgBtn = document.getElementById('downloadApkgBtn');
+downloadApkgBtn.addEventListener('click', async () => {
+    if (cards.length === 0) {
+        alert('No cards to export!');
         return;
     }
+    const originalText = downloadApkgBtn.textContent;
+    downloadApkgBtn.textContent = 'Generating...';
+    downloadApkgBtn.setAttribute('disabled', 'true');
     try {
-        await navigator.clipboard.writeText(text);
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = originalText, 2000);
-    } catch (err) {
-        console.error('Failed to copy', err);
-        alert('Failed to copy to clipboard');
+        await downloadAnkiPackage(cards, templates);
+    } catch (e) {
+        console.error(e);
+        alert('Failed to generate Anki package. Check console for details.');
+    } finally {
+        downloadApkgBtn.textContent = originalText;
+        downloadApkgBtn.removeAttribute('disabled');
     }
-};
+});
 
-copyFrontBtn.onclick = () => copyToClipboard(templates.front, copyFrontBtn);
-copyBackBtn.onclick = () => copyToClipboard(templates.back, copyBackBtn);
-copyCssBtn.onclick = () => copyToClipboard(templates.css, copyCssBtn);
+
 
 console.log('App initialized');

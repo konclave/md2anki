@@ -2,7 +2,7 @@
 
 A lightweight, client-side web application designed to convert formatted Markdown files written in a specific format into Anki-compatible CSV files. This tool streamlines the process of creating language learning flashcards from your notes.
 
-## 🚀 Features
+## Features
 
 -   **Privacy Focused**: Runs entirely in your browser. No data is uploaded to any server.
 -   **Instant Preview**: Visual preview of your cards before exporting.
@@ -10,7 +10,7 @@ A lightweight, client-side web application designed to convert formatted Markdow
 -   **Anki Ready**: Generates CSV files optimized for Anki import.
 -   **Template Support**: Includes ready-to-use HTML and CSS templates for your Anki card styling.
 
-## 📝 Markdown Format
+## Markdown Format
 
 The converter expects your Markdown file to follow a specific structure for each card:
 
@@ -31,7 +31,7 @@ Example Sentence | Translation of Example
 Der Hund bellt laut. | The dog barks loudly.
 ```
 
-## 🛠️ Installation & Usage
+## Installation & Usage
 
 Since this is a static web application, no complex installation is required.
 
@@ -51,14 +51,14 @@ Since this is a static web application, no complex installation is required.
     -   Map the fields accordingly (Phrase, Translation, Example, Example Translation).
     -   (Optional) Use the provided HTML/CSS templates in the `card-template` folder to style your cards.
 
-## 📂 Project Structure
+## Project Structure
 
 -   `public/src/`: Core JavaScript logic (Parser, CSV Generator, App Controller).
 -   `card-template/`: HTML and CSS templates for Anki.
 -   `test/`: Unit tests for the parsing logic.
 -   `index.html`: Main entry point.
 
-## 💻 Technologies
+## Technologies
 
 -   **HTML5 & CSS3**
 -   **JavaScript (ES Modules)**

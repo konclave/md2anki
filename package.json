@@ -1,0 +1,27 @@
+{
+  "name": "md2anki",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "rspack serve",
+    "build": "rspack build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "@rspack/cli": "^1.6.8",
+    "@rspack/core": "^1.6.8",
+    "css-loader": "^7.1.2"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
+    "bulma": "^1.0.4",
+    "genanki-js": "^2.0.0",
+    "jszip": "^3.10.1",
+    "sql.js": "^1.13.0"
+  }
+}
