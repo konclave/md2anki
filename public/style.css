@@ -1,0 +1,10 @@
+/* Main styles */
+#cardList {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+#cardList li a.is-active {
+    background-color: #3273dc;
+    color: white;
+}
