@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseMarkdown } from '../public/src/parser.js';
+import { parseMarkdown } from '../src/parser.js';
 
 test('parser', async (t) => {
     await t.test('should return empty array for empty string', () => {

@@ -1,6 +1,7 @@
 {
   "name": "md2anki",
   "version": "1.0.0",
+  "type": "module",
   "description": "Convert Markdown notes to Anki decks.",
   "main": "index.js",
   "scripts": {
