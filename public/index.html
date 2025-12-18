@@ -14,6 +14,44 @@
             <h1 class="title">Markdown to Anki Converter</h1>
             <p class="subtitle">Convert Markdown notes into Anki flashcards</p>
 
+            <details class="box mb-5">
+                <summary class="has-text-weight-semibold" style="cursor: pointer;">
+                    Markdown Format Guide
+                </summary>
+                <div class="content mt-3">
+                    <p>Each flashcard is defined by a <strong>header block</strong> in your markdown file:</p>
+                    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>### **Front text**                Translation
+
+Example sentence | Example translation</code></pre>
+
+                    <h4 class="is-size-6 mt-4 mb-2">Structure:</h4>
+                    <ul class="mt-2">
+                        <li><strong>Header line</strong> (h1-h5): The bold text becomes the card <em>front</em>, any
+                            following text becomes the <em>translation</em></li>
+                        <li><strong>Example line</strong>: Uses <code>|</code> as separator between example sentence and
+                            its translation</li>
+                    </ul>
+
+                    <h4 class="is-size-6 mt-4 mb-2">Multiple Cards:</h4>
+                    <ul class="mt-2">
+                        <li>A single file can contain <strong>multiple cards</strong></li>
+                        <li>Each new header (<code>#</code> to <code>#####</code>) starts a <strong>new
+                                block/card</strong></li>
+                        <li>Content between headers belongs to that card's block</li>
+                    </ul>
+
+                    <h4 class="is-size-6 mt-4 mb-2">Example:</h4>
+                    <pre
+                        style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>### **Ich bin der Ansicht, dass …**    Я считаю, что…
+
+Ich bin der Ansicht, dass Kommunikation wichtig ist. | Я считаю, что коммуникация важна.
+
+### **Aus meiner Sicht ist es wichtig, …**    С моей точки зрения важно…
+
+Aus meiner Sicht ist es wichtig, Beruf und Familie zu vereinbaren. | С моей точки зрения важно совмещать работу и семью.</code></pre>
+                </div>
+            </details>
+
             <div class="file has-name is-fullwidth mb-5">
                 <label class="file-label">
                     <input class="file-input" type="file" id="fileInput" accept=".md">
