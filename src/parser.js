@@ -3,8 +3,10 @@ export function parseMarkdown(content) {
     const cards = [];
     if (!content) return cards;
 
-    // Split by ###, filtering out empty blocks typical at start of file
-    const blocks = content.split('###').filter(b => b.trim().length > 0);
+    // Split by any markdown header level (# to #####), filtering out empty blocks
+    // The regex matches 1-5 # characters at the start of a line
+    const headerRegex = /^#{1,5}\s+/gm;
+    const blocks = content.split(headerRegex).filter(b => b.trim().length > 0);
 
     for (const block of blocks) {
         const lines = block.trim().split('\n');
