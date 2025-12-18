@@ -1,15 +1,18 @@
 {
   "name": "md2anki",
   "version": "1.0.0",
-  "description": "",
+  "description": "Convert Markdown notes to Anki decks.",
   "main": "index.js",
   "scripts": {
     "dev": "rspack serve",
     "build": "rspack build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test --experimental-test-module-mocks"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "anki",
+    "markdown"
+  ],
+  "author": "Ivan Vasilev <via@mm.st>",
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
