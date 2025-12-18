@@ -82,7 +82,7 @@ CREATE INDEX ix_notes_csum on notes (csum);
 COMMIT;
 `;
 
-export async function downloadAnkiPackage(cards, templates) {
+export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown2Anki Deck') {
     // Ensure SQL.js is initialized and available globally
     if (!window.SQL) {
         try {
@@ -119,7 +119,7 @@ export async function downloadAnkiPackage(cards, templates) {
         tmpls: [frontTemplate]
     });
 
-    const d = new Deck(Date.now(), "Markdown2Anki Deck");
+    const d = new Deck(Date.now(), deckName);
 
     console.log(`Generating package for ${cards.length} cards...`);
     cards.forEach(card => {
@@ -183,7 +183,7 @@ export async function downloadAnkiPackage(cards, templates) {
         const url = URL.createObjectURL(zipBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'anki_deck.apkg';
+        a.download = `${deckName}.apkg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

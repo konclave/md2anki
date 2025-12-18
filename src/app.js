@@ -15,6 +15,9 @@ let templates = {
     css: ''
 };
 
+// Local Storage Keys
+const DECK_NAME_STORAGE_KEY = 'md2anki_deck_name';
+
 // Elements
 const fileInput = document.getElementById('fileInput');
 const fileName = document.getElementById('fileName');
@@ -22,6 +25,7 @@ const mainContent = document.getElementById('mainContent');
 const cardCount = document.getElementById('cardCount');
 const cardList = document.getElementById('cardList');
 const previewContainer = document.getElementById('previewContainer');
+const deckNameInput = document.getElementById('deckNameInput');
 
 const tabs = document.querySelectorAll('.tabs li');
 
@@ -43,6 +47,42 @@ async function init() {
 }
 init();
 
+// Deck name persistence
+function getDeckName() {
+    const savedName = localStorage.getItem(DECK_NAME_STORAGE_KEY);
+    return savedName || deckNameInput.value || 'Markdown2Anki Deck';
+}
+
+function setDeckNameFromFile(filename) {
+    // Remove .md extension to get default deck name
+    const defaultName = filename.replace(/\.md$/i, '');
+
+    // Check if we have a saved name in local storage
+    const savedName = localStorage.getItem(DECK_NAME_STORAGE_KEY);
+
+    if (savedName) {
+        deckNameInput.value = savedName;
+    } else {
+        deckNameInput.value = defaultName;
+    }
+}
+
+// Save deck name when changed
+deckNameInput.addEventListener('change', () => {
+    const name = deckNameInput.value.trim();
+    if (name) {
+        localStorage.setItem(DECK_NAME_STORAGE_KEY, name);
+    }
+});
+
+// Also save on input for real-time persistence
+deckNameInput.addEventListener('blur', () => {
+    const name = deckNameInput.value.trim();
+    if (name) {
+        localStorage.setItem(DECK_NAME_STORAGE_KEY, name);
+    }
+});
+
 // File Input
 fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
@@ -51,6 +91,9 @@ fileInput.addEventListener('change', async (e) => {
     fileName.textContent = file.name;
     const text = await file.text();
     cards = parseMarkdown(text);
+
+    // Set deck name from file (or use saved value)
+    setDeckNameFromFile(file.name);
 
     cardCount.textContent = cards.length;
     renderList();
@@ -144,7 +187,8 @@ downloadApkgBtn.addEventListener('click', async () => {
     downloadApkgBtn.textContent = 'Generating...';
     downloadApkgBtn.setAttribute('disabled', 'true');
     try {
-        await downloadAnkiPackage(cards, templates);
+        const deckName = deckNameInput.value.trim() || 'Markdown2Anki Deck';
+        await downloadAnkiPackage(cards, templates, deckName);
     } catch (e) {
         console.error(e);
         alert('Failed to generate Anki package. Check console for details.');
