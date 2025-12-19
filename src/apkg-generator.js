@@ -82,6 +82,18 @@ CREATE INDEX ix_notes_csum on notes (csum);
 COMMIT;
 `;
 
+async function generateDeckId(deckName) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(deckName);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashView = new DataView(hashBuffer);
+    // Use first 4 bytes for a positive 32-bit integer
+    let deckId = hashView.getUint32(0);
+    // Ensure non-zero
+    if (deckId === 0) deckId = 1;
+    return deckId;
+}
+
 export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown2Anki Deck') {
     // Ensure SQL.js is initialized and available globally
     if (!window.SQL) {
@@ -119,7 +131,8 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         tmpls: [frontTemplate]
     });
 
-    const d = new Deck(Date.now(), deckName);
+    const deckId = await generateDeckId(deckName);
+    const d = new Deck(deckId, deckName);
 
     console.log(`Generating package for ${cards.length} cards...`);
     cards.forEach(card => {
