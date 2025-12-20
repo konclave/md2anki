@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "rspack serve",
     "build": "rspack build",
-    "test": "node --test --experimental-test-module-mocks"
+    "test": "node --test --experimental-test-module-mocks",
+    "release": "standard-version",
+    "prepare": "husky"
   },
   "keywords": [
     "anki",
@@ -17,9 +19,13 @@
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@rspack/cli": "^1.6.8",
     "@rspack/core": "^1.6.8",
-    "css-loader": "^7.1.2"
+    "css-loader": "^7.1.2",
+    "husky": "^9.1.7",
+    "standard-version": "^9.5.0"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
