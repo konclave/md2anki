@@ -122,7 +122,9 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
             { name: "Phrase" },
             { name: "Translation" },
             { name: "Example" },
-            { name: "ExampleTranslation" }
+            { name: "ExampleTranslation" },
+            { name: "Example2" },
+            { name: "ExampleTranslation2" }
         ],
         req: [
             [0, "all", [0]] // Card 1: Phrase is required
@@ -140,7 +142,9 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
             card.phrase || "",
             card.translation || "",
             card.example || "",
-            card.example_translation || ""
+            card.example_translation || "",
+            card.example2 || "",
+            card.example_translation2 || ""
         ]);
         d.addNote(n);
     });

@@ -21,17 +21,28 @@ export function parseMarkdown(content) {
             const { phrase, translation } = headerMatch.groups;
             let example = '';
             let example_translation = '';
+            let example2 = '';
+            let example_translation2 = '';
 
             // Look for example in remaining lines
             const exampleRegex = /^(?<example>.+?)\s*\|\s*(?<example_translation>.+)$/;
+            let exampleCount = 0;
+
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
                 const exMatch = line.match(exampleRegex);
                 if (exMatch) {
-                    example = exMatch.groups.example;
-                    example_translation = exMatch.groups.example_translation;
-                    break;
+                    if (exampleCount === 0) {
+                        example = exMatch.groups.example;
+                        example_translation = exMatch.groups.example_translation;
+                        exampleCount++;
+                    } else if (exampleCount === 1) {
+                        example2 = exMatch.groups.example;
+                        example_translation2 = exMatch.groups.example_translation;
+                        exampleCount++;
+                        break; // Stop after 2 examples
+                    }
                 }
             }
 
@@ -39,7 +50,9 @@ export function parseMarkdown(content) {
                 phrase: phrase.trim(),
                 translation: translation.trim(),
                 example: example.trim(),
-                example_translation: example_translation.trim()
+                example_translation: example_translation.trim(),
+                example2: example2.trim(),
+                example_translation2: example_translation2.trim()
             });
         }
     }
