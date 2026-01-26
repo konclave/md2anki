@@ -26,6 +26,7 @@ const cardCount = document.getElementById('cardCount');
 const cardList = document.getElementById('cardList');
 const previewContainer = document.getElementById('previewContainer');
 const deckNameInput = document.getElementById('deckNameInput');
+const generateReversedDeckCheckbox = document.getElementById('generateReversedDeck');
 
 const tabs = document.querySelectorAll('.tabs li');
 
@@ -188,7 +189,8 @@ downloadApkgBtn.addEventListener('click', async () => {
     downloadApkgBtn.setAttribute('disabled', 'true');
     try {
         const deckName = deckNameInput.value.trim() || 'Markdown2Anki Deck';
-        await downloadAnkiPackage(cards, templates, deckName);
+        const generateReversed = generateReversedDeckCheckbox.checked;
+        await downloadAnkiPackage(cards, templates, deckName, generateReversed);
     } catch (e) {
         console.error(e);
         alert('Failed to generate Anki package. Check console for details.');

@@ -94,7 +94,7 @@ async function generateDeckId(deckName) {
     return deckId;
 }
 
-export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown2Anki Deck') {
+export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown2Anki Deck', generateReversed = false) {
     // Ensure SQL.js is initialized and available globally
     if (!window.SQL) {
         try {
@@ -133,6 +133,28 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         tmpls: [frontTemplate]
     });
 
+    const reversedModel = new Model({
+        id: 13371338, // Different ID for the reversed model
+        name: "Markdown2Anki Model (Reversed)",
+        flds: [
+            { name: "Phrase" },
+            { name: "Translation" },
+            { name: "Example" },
+            { name: "ExampleTranslation" },
+            { name: "Example2" },
+            { name: "ExampleTranslation2" }
+        ],
+        req: [
+            [0, "all", [1]] // Card 1: Translation is required
+        ],
+        css: templates.css,
+        tmpls: [{
+            name: "Card 1 (Reversed)",
+            qfmt: "{{Translation}}",
+            afmt: "{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}"
+        }]
+    });
+
     const deckId = await generateDeckId(deckName);
     const d = new Deck(deckId, deckName);
 
@@ -152,6 +174,24 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
 
     const p = new Package();
     p.addDeck(d);
+
+    if (generateReversed) {
+        const reversedDeckName = `${deckName} (Reversed)`;
+        const reversedDeckId = await generateDeckId(reversedDeckName);
+        const reversedDeck = new Deck(reversedDeckId, reversedDeckName);
+        cards.forEach(card => {
+            const n = new Note(reversedModel, [
+                card.phrase || "",
+                card.translation || "",
+                card.example || "",
+                card.example_translation || "",
+                card.example2 || "",
+                card.example_translation2 || ""
+            ]);
+            reversedDeck.addNote(n);
+        });
+        p.addDeck(reversedDeck);
+    }
 
     // Create DB instance manually
     const db = new window.SQL.Database();
