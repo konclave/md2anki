@@ -6,7 +6,7 @@ export function parseMarkdown(content) {
     // Split by any markdown header level (# to #####), filtering out empty blocks
     // The regex matches 1-5 # characters at the start of a line
     const headerRegex = /^#{1,5}\s+/gm;
-    const blocks = content.split(headerRegex).filter(b => b.trim().length > 0);
+    const blocks = content.split(headerRegex).filter(block => block.trim().length > 0);
 
     for (const block of blocks) {
         const lines = block.trim().split('\n');
@@ -20,26 +20,26 @@ export function parseMarkdown(content) {
         if (headerMatch) {
             const { phrase, translation } = headerMatch.groups;
             let example = '';
-            let example_translation = '';
+            let exampleTranslation = '';
             let example2 = '';
-            let example_translation2 = '';
+            let exampleTranslation2 = '';
 
             // Look for example in remaining lines
             const exampleRegex = /^(?<example>.+?)\s*\|\s*(?<example_translation>.+)$/;
             let exampleCount = 0;
 
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
+            for (let lineIndex = 1; lineIndex < lines.length; lineIndex++) {
+                const line = lines[lineIndex].trim();
                 if (!line) continue;
-                const exMatch = line.match(exampleRegex);
-                if (exMatch) {
+                const exampleMatch = line.match(exampleRegex);
+                if (exampleMatch) {
                     if (exampleCount === 0) {
-                        example = exMatch.groups.example;
-                        example_translation = exMatch.groups.example_translation;
+                        example = exampleMatch.groups.example;
+                        exampleTranslation = exampleMatch.groups.example_translation;
                         exampleCount++;
                     } else if (exampleCount === 1) {
-                        example2 = exMatch.groups.example;
-                        example_translation2 = exMatch.groups.example_translation;
+                        example2 = exampleMatch.groups.example;
+                        exampleTranslation2 = exampleMatch.groups.example_translation;
                         exampleCount++;
                         break; // Stop after 2 examples
                     }
@@ -50,9 +50,9 @@ export function parseMarkdown(content) {
                 phrase: phrase.trim(),
                 translation: translation.trim(),
                 example: example.trim(),
-                example_translation: example_translation.trim(),
+                exampleTranslation: exampleTranslation.trim(),
                 example2: example2.trim(),
-                example_translation2: example_translation2.trim()
+                exampleTranslation2: exampleTranslation2.trim()
             });
         }
     }

@@ -109,9 +109,9 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         }
     }
 
-    const p = new Package();
+    const ankiPackage = new Package();
     const db = new window.SQL.Database();
-    p.setSqlJs(db);
+    ankiPackage.setSqlJs(db);
 
     try {
         const frontTemplate = {
@@ -120,7 +120,7 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
             afmt: templates.back
         };
 
-        const m = new Model({
+        const ankiModel = new Model({
             id: 13371337,
             name: "Markdown2Anki Model",
             flds: [
@@ -160,31 +160,31 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
             }]
         });
 
-        const selectedModel = generateReversed ? reversedModel : m;
-        const currentDeckName = generateReversed ? `${deckName} (Reversed)` : deckName;
+        const selectedModel = generateReversed ? reversedModel : ankiModel;
+        const currentDeckName = deckName;
         const deckId = await generateDeckId(currentDeckName);
-        const d = new Deck(deckId, currentDeckName);
+        const ankiDeck = new Deck(deckId, currentDeckName);
 
         cards.forEach(card => {
-            const n = new Note(selectedModel, [
+            const ankiNote = new Note(selectedModel, [
                 card.phrase || "",
                 card.translation || "",
                 card.example || "",
-                card.example_translation || "",
+                card.exampleTranslation || "",
                 card.example2 || "",
-                card.example_translation2 || ""
+                card.exampleTranslation2 || ""
             ]);
-            d.addNote(n);
+            ankiDeck.addNote(ankiNote);
         });
 
-        p.addDeck(d);
+        ankiPackage.addDeck(ankiDeck);
 
         // Run Schema
         db.run(APKG_SCHEMA);
 
         // Write package data to DB
         console.log("Writing to DB...");
-        p.write(db);
+        ankiPackage.write(db);
 
         // Verification logs variables
         const resultNotes = db.exec("SELECT count(*) FROM notes");
@@ -201,14 +201,14 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
 
         const media_info = {};
 
-        if (p.media && Array.isArray(p.media)) {
-            p.media.forEach((m, i) => {
-                if (m.filename != null) {
-                    zip.file(i.toString(), m.filename);
+        if (ankiPackage.media && Array.isArray(ankiPackage.media)) {
+            ankiPackage.media.forEach((mediaItem, i) => {
+                if (mediaItem.filename != null) {
+                    zip.file(i.toString(), mediaItem.filename);
                 } else {
-                    zip.file(i.toString(), m.data);
+                    zip.file(i.toString(), mediaItem.data);
                 }
-                media_info[i] = m.name;
+                media_info[i] = mediaItem.name;
             });
         }
 

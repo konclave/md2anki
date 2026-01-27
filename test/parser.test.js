@@ -13,9 +13,9 @@ test('parser', async (t) => {
             phrase: 'Hello',
             translation: 'HelloTranslation',
             example: '',
-            example_translation: '',
+            exampleTranslation: '',
             example2: '',
-            example_translation2: ''
+            exampleTranslation2: ''
         }];
         assert.deepStrictEqual(parseMarkdown(input), expected);
     });
@@ -27,9 +27,9 @@ Example | ExampleTranslation`;
             phrase: 'Phrase',
             translation: 'Translation',
             example: 'Example',
-            example_translation: 'ExampleTranslation',
+            exampleTranslation: 'ExampleTranslation',
             example2: '',
-            example_translation2: ''
+            exampleTranslation2: ''
         }];
         assert.deepStrictEqual(parseMarkdown(input), expected);
     });
@@ -42,9 +42,9 @@ Ex2 | Ex2T`;
             phrase: 'Phrase',
             translation: 'Translation',
             example: 'Ex1',
-            example_translation: 'Ex1T',
+            exampleTranslation: 'Ex1T',
             example2: 'Ex2',
-            example_translation2: 'Ex2T'
+            exampleTranslation2: 'Ex2T'
         }];
         assert.deepStrictEqual(parseMarkdown(input), expected);
     });
@@ -56,8 +56,8 @@ Ex1 | Ex1T
 ### **Two** TwoT
 Ex2 | Ex2T`;
         const expected = [
-            { phrase: 'One', translation: 'OneT', example: 'Ex1', example_translation: 'Ex1T', example2: '', example_translation2: '' },
-            { phrase: 'Two', translation: 'TwoT', example: 'Ex2', example_translation: 'Ex2T', example2: '', example_translation2: '' }
+            { phrase: 'One', translation: 'OneT', example: 'Ex1', exampleTranslation: 'Ex1T', example2: '', exampleTranslation2: '' },
+            { phrase: 'Two', translation: 'TwoT', example: 'Ex2', exampleTranslation: 'Ex2T', example2: '', exampleTranslation2: '' }
         ];
         assert.deepStrictEqual(parseMarkdown(input), expected);
     });
@@ -71,9 +71,9 @@ Ex2 | Ex2T`;
             phrase: 'One',
             translation: 'OneT',
             example: 'Ex1',
-            example_translation: 'Ex1T',
+            exampleTranslation: 'Ex1T',
             example2: '',
-            example_translation2: ''
+            exampleTranslation2: ''
         }];
         assert.deepStrictEqual(parseMarkdown(input), expected);
     });
