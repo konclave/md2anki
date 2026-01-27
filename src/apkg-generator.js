@@ -109,101 +109,82 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         }
     }
 
-    const frontTemplate = {
-        name: "Card 1",
-        qfmt: templates.front,
-        afmt: templates.back
-    };
+    const ankiPackage = new Package();
+    const db = new window.SQL.Database();
+    ankiPackage.setSqlJs(db);
 
-    const m = new Model({
-        id: 13371337,
-        name: "Markdown2Anki Model",
-        flds: [
-            { name: "Phrase" },
-            { name: "Translation" },
-            { name: "Example" },
-            { name: "ExampleTranslation" },
-            { name: "Example2" },
-            { name: "ExampleTranslation2" }
-        ],
-        req: [
-            [0, "all", [0]] // Card 1: Phrase is required
-        ],
-        css: templates.css,
-        tmpls: [frontTemplate]
-    });
+    try {
+        const frontTemplate = {
+            name: "Card 1",
+            qfmt: templates.front,
+            afmt: templates.back
+        };
 
-    const reversedModel = new Model({
-        id: 13371338, // Different ID for the reversed model
-        name: "Markdown2Anki Model (Reversed)",
-        flds: [
-            { name: "Phrase" },
-            { name: "Translation" },
-            { name: "Example" },
-            { name: "ExampleTranslation" },
-            { name: "Example2" },
-            { name: "ExampleTranslation2" }
-        ],
-        req: [
-            [0, "all", [1]] // Card 1: Translation is required
-        ],
-        css: templates.css,
-        tmpls: [{
-            name: "Card 1 (Reversed)",
-            qfmt: "{{Translation}}",
-            afmt: "{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}"
-        }]
-    });
+        const ankiModel = new Model({
+            id: 13371337,
+            name: "Markdown2Anki Model",
+            flds: [
+                { name: "Phrase" },
+                { name: "Translation" },
+                { name: "Example" },
+                { name: "ExampleTranslation" },
+                { name: "Example2" },
+                { name: "ExampleTranslation2" }
+            ],
+            req: [
+                [0, "all", [0]] // Card 1: Phrase is required
+            ],
+            css: templates.css,
+            tmpls: [frontTemplate]
+        });
 
-    const deckId = await generateDeckId(deckName);
-    const d = new Deck(deckId, deckName);
+        const reversedModel = new Model({
+            id: 13371338, // Different ID for the reversed model
+            name: "Markdown2Anki Model (Reversed)",
+            flds: [
+                { name: "Phrase" },
+                { name: "Translation" },
+                { name: "Example" },
+                { name: "ExampleTranslation" },
+                { name: "Example2" },
+                { name: "ExampleTranslation2" }
+            ],
+            req: [
+                [0, "all", [1]] // Card 1: Translation is required
+            ],
+            css: templates.css,
+            tmpls: [{
+                name: "Card 1 (Reversed)",
+                qfmt: "{{Translation}}",
+                afmt: `{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}`
+            }]
+        });
 
-    console.log(`Generating package for ${cards.length} cards...`);
-    cards.forEach(card => {
-        const n = new Note(m, [
-            card.phrase || "",
-            card.translation || "",
-            card.example || "",
-            card.example_translation || "",
-            card.example2 || "",
-            card.example_translation2 || ""
-        ]);
-        d.addNote(n);
-    });
-    console.log(`Deck has ${d.notes.length} notes.`);
+        const selectedModel = generateReversed ? reversedModel : ankiModel;
+        const currentDeckName = deckName;
+        const deckId = await generateDeckId(currentDeckName);
+        const ankiDeck = new Deck(deckId, currentDeckName);
 
-    const p = new Package();
-    p.addDeck(d);
-
-    if (generateReversed) {
-        const reversedDeckName = `${deckName} (Reversed)`;
-        const reversedDeckId = await generateDeckId(reversedDeckName);
-        const reversedDeck = new Deck(reversedDeckId, reversedDeckName);
         cards.forEach(card => {
-            const n = new Note(reversedModel, [
+            const ankiNote = new Note(selectedModel, [
                 card.phrase || "",
                 card.translation || "",
                 card.example || "",
-                card.example_translation || "",
+                card.exampleTranslation || "",
                 card.example2 || "",
-                card.example_translation2 || ""
+                card.exampleTranslation2 || ""
             ]);
-            reversedDeck.addNote(n);
+            ankiDeck.addNote(ankiNote);
         });
-        p.addDeck(reversedDeck);
-    }
 
-    // Create DB instance manually
-    const db = new window.SQL.Database();
-    p.setSqlJs(db);
+        ankiPackage.addDeck(ankiDeck);
 
-    try {
         // Run Schema
         db.run(APKG_SCHEMA);
 
         // Write package data to DB
         console.log("Writing to DB...");
-        p.write(db);
+        ankiPackage.write(db);
 
         // Verification logs variables
         const resultNotes = db.exec("SELECT count(*) FROM notes");
@@ -220,14 +201,14 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
 
         const media_info = {};
 
-        if (p.media && Array.isArray(p.media)) {
-            p.media.forEach((m, i) => {
-                if (m.filename != null) {
-                    zip.file(i.toString(), m.filename);
+        if (ankiPackage.media && Array.isArray(ankiPackage.media)) {
+            ankiPackage.media.forEach((mediaItem, i) => {
+                if (mediaItem.filename != null) {
+                    zip.file(i.toString(), mediaItem.filename);
                 } else {
-                    zip.file(i.toString(), m.data);
+                    zip.file(i.toString(), mediaItem.data);
                 }
-                media_info[i] = m.name;
+                media_info[i] = mediaItem.name;
             });
         }
 
@@ -240,7 +221,7 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const url = URL.createObjectURL(zipBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${deckName}.apkg`;
+        a.download = `${currentDeckName}.apkg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

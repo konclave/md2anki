@@ -17,6 +17,7 @@ let templates = {
 
 // Local Storage Keys
 const DECK_NAME_STORAGE_KEY = 'md2anki_deck_name';
+const REVERSED_DECK_NAME_STORAGE_KEY = 'md2anki_reversed_deck_name';
 
 // Elements
 const fileInput = document.getElementById('fileInput');
@@ -26,32 +27,36 @@ const cardCount = document.getElementById('cardCount');
 const cardList = document.getElementById('cardList');
 const previewContainer = document.getElementById('previewContainer');
 const deckNameInput = document.getElementById('deckNameInput');
-const generateReversedDeckCheckbox = document.getElementById('generateReversedDeck');
+const reversedDeckNameInput = document.getElementById('reversedDeckNameInput');
 
 const tabs = document.querySelectorAll('.tabs li');
 
 // Init
 async function init() {
     try {
-        const [frontRes, backRes, cssRes] = await Promise.all([
+        const [frontResponse, backResponse, cssResponse] = await Promise.all([
             fetch('card-template/anki_front.html'),
             fetch('card-template/anki_back.html'),
             fetch('card-template/anki.css')
         ]);
-        if (frontRes.ok) templates.front = await frontRes.text();
-        if (backRes.ok) templates.back = await backRes.text();
-        if (cssRes.ok) templates.css = await cssRes.text();
+        if (frontResponse.ok) templates.front = await frontResponse.text();
+        if (backResponse.ok) templates.back = await backResponse.text();
+        if (cssResponse.ok) templates.css = await cssResponse.text();
     } catch (e) {
         console.error('Failed to load templates', e);
         // Fallback or just log. The copy buttons might be empty, and preview unstyled/default.
     }
+    loadDeckNames();
 }
 init();
 
 // Deck name persistence
-function getDeckName() {
+function loadDeckNames() {
     const savedName = localStorage.getItem(DECK_NAME_STORAGE_KEY);
-    return savedName || deckNameInput.value || 'Markdown2Anki Deck';
+    if (savedName) deckNameInput.value = savedName;
+
+    const savedReversedName = localStorage.getItem(REVERSED_DECK_NAME_STORAGE_KEY);
+    if (savedReversedName) reversedDeckNameInput.value = savedReversedName;
 }
 
 function setDeckNameFromFile(filename) {
@@ -60,12 +65,11 @@ function setDeckNameFromFile(filename) {
 
     // Check if we have a saved name in local storage
     const savedName = localStorage.getItem(DECK_NAME_STORAGE_KEY);
+    deckNameInput.value = savedName || defaultName;
 
-    if (savedName) {
-        deckNameInput.value = savedName;
-    } else {
-        deckNameInput.value = defaultName;
-    }
+    // Handle reversed name default
+    const savedReversedName = localStorage.getItem(REVERSED_DECK_NAME_STORAGE_KEY);
+    reversedDeckNameInput.value = savedReversedName || `${deckNameInput.value} (Reversed)`;
 }
 
 // Save deck name when changed
@@ -75,12 +79,24 @@ deckNameInput.addEventListener('change', () => {
         localStorage.setItem(DECK_NAME_STORAGE_KEY, name);
     }
 });
-
-// Also save on input for real-time persistence
 deckNameInput.addEventListener('blur', () => {
     const name = deckNameInput.value.trim();
     if (name) {
         localStorage.setItem(DECK_NAME_STORAGE_KEY, name);
+    }
+});
+
+// Save reversed deck name when changed
+reversedDeckNameInput.addEventListener('change', () => {
+    const name = reversedDeckNameInput.value.trim();
+    if (name) {
+        localStorage.setItem(REVERSED_DECK_NAME_STORAGE_KEY, name);
+    }
+});
+reversedDeckNameInput.addEventListener('blur', () => {
+    const name = reversedDeckNameInput.value.trim();
+    if (name) {
+        localStorage.setItem(REVERSED_DECK_NAME_STORAGE_KEY, name);
     }
 });
 
@@ -144,8 +160,8 @@ function renderPreview() {
 
     // Render HTML
     let html = '';
-    const renderFront = (c) => {
-        return templates.front.replace(/{{Phrase}}/g, c.phrase || '');
+    const renderFront = (card) => {
+        return templates.front.replace(/{{Phrase}}/g, card.phrase || '');
     };
 
     if (currentTab === 'front') {
@@ -155,7 +171,7 @@ function renderPreview() {
             .replace(/{{FrontSide}}/g, renderFront(card))
             .replace(/{{Translation}}/g, card.translation || '')
             .replace(/{{Example}}/g, card.example || '')
-            .replace(/{{ExampleTranslation}}/g, card.example_translation || '');
+            .replace(/{{ExampleTranslation}}/g, card.exampleTranslation || '');
     }
 
     shadow.innerHTML = '';
@@ -171,7 +187,7 @@ tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
         // Find the li element even if clicked on a child <a>
         const li = e.currentTarget;
-        tabs.forEach(t => t.classList.remove('is-active'));
+        tabs.forEach(tab => tab.classList.remove('is-active'));
         li.classList.add('is-active');
         currentTab = li.dataset.tab;
         renderPreview();
@@ -179,26 +195,38 @@ tabs.forEach(tab => {
 });
 
 const downloadApkgBtn = document.getElementById('downloadApkgBtn');
-downloadApkgBtn.addEventListener('click', async () => {
+const downloadReversedApkgBtn = document.getElementById('downloadReversedApkgBtn');
+
+async function handleDownload(reversed = false, button) {
     if (cards.length === 0) {
         alert('No cards to export!');
         return;
     }
-    const originalText = downloadApkgBtn.textContent;
-    downloadApkgBtn.textContent = 'Generating...';
-    downloadApkgBtn.setAttribute('disabled', 'true');
+
+    const originalText = button.textContent;
+    button.textContent = 'Generating...';
+    button.setAttribute('disabled', 'true');
+
     try {
-        const deckName = deckNameInput.value.trim() || 'Markdown2Anki Deck';
-        const generateReversed = generateReversedDeckCheckbox.checked;
-        await downloadAnkiPackage(cards, templates, deckName, generateReversed);
+        let deckName = '';
+        if (reversed) {
+            deckName = reversedDeckNameInput.value.trim() || `${deckNameInput.value.trim()} (Reversed)`;
+        } else {
+            deckName = deckNameInput.value.trim() || 'Markdown2Anki Deck';
+        }
+        
+        await downloadAnkiPackage(cards, templates, deckName, reversed);
     } catch (e) {
         console.error(e);
         alert('Failed to generate Anki package. Check console for details.');
     } finally {
-        downloadApkgBtn.textContent = originalText;
-        downloadApkgBtn.removeAttribute('disabled');
+        button.textContent = originalText;
+        button.removeAttribute('disabled');
     }
-});
+}
+
+downloadApkgBtn.addEventListener('click', () => handleDownload(false, downloadApkgBtn));
+downloadReversedApkgBtn.addEventListener('click', () => handleDownload(true, downloadReversedApkgBtn));
 
 
 
