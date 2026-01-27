@@ -26,7 +26,6 @@ const cardCount = document.getElementById('cardCount');
 const cardList = document.getElementById('cardList');
 const previewContainer = document.getElementById('previewContainer');
 const deckNameInput = document.getElementById('deckNameInput');
-const generateReversedDeckCheckbox = document.getElementById('generateReversedDeck');
 
 const tabs = document.querySelectorAll('.tabs li');
 
@@ -179,26 +178,32 @@ tabs.forEach(tab => {
 });
 
 const downloadApkgBtn = document.getElementById('downloadApkgBtn');
-downloadApkgBtn.addEventListener('click', async () => {
+const downloadReversedApkgBtn = document.getElementById('downloadReversedApkgBtn');
+
+async function handleDownload(reversed = false, button) {
     if (cards.length === 0) {
         alert('No cards to export!');
         return;
     }
-    const originalText = downloadApkgBtn.textContent;
-    downloadApkgBtn.textContent = 'Generating...';
-    downloadApkgBtn.setAttribute('disabled', 'true');
+
+    const originalText = button.textContent;
+    button.textContent = 'Generating...';
+    button.setAttribute('disabled', 'true');
+
     try {
         const deckName = deckNameInput.value.trim() || 'Markdown2Anki Deck';
-        const generateReversed = generateReversedDeckCheckbox.checked;
-        await downloadAnkiPackage(cards, templates, deckName, generateReversed);
+        await downloadAnkiPackage(cards, templates, deckName, reversed);
     } catch (e) {
         console.error(e);
         alert('Failed to generate Anki package. Check console for details.');
     } finally {
-        downloadApkgBtn.textContent = originalText;
-        downloadApkgBtn.removeAttribute('disabled');
+        button.textContent = originalText;
+        button.removeAttribute('disabled');
     }
-});
+}
+
+downloadApkgBtn.addEventListener('click', () => handleDownload(false, downloadApkgBtn));
+downloadReversedApkgBtn.addEventListener('click', () => handleDownload(true, downloadReversedApkgBtn));
 
 
 

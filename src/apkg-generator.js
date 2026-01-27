@@ -109,78 +109,64 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         }
     }
 
-    const frontTemplate = {
-        name: "Card 1",
-        qfmt: templates.front,
-        afmt: templates.back
-    };
-
-    const m = new Model({
-        id: 13371337,
-        name: "Markdown2Anki Model",
-        flds: [
-            { name: "Phrase" },
-            { name: "Translation" },
-            { name: "Example" },
-            { name: "ExampleTranslation" },
-            { name: "Example2" },
-            { name: "ExampleTranslation2" }
-        ],
-        req: [
-            [0, "all", [0]] // Card 1: Phrase is required
-        ],
-        css: templates.css,
-        tmpls: [frontTemplate]
-    });
-
-    const reversedModel = new Model({
-        id: 13371338, // Different ID for the reversed model
-        name: "Markdown2Anki Model (Reversed)",
-        flds: [
-            { name: "Phrase" },
-            { name: "Translation" },
-            { name: "Example" },
-            { name: "ExampleTranslation" },
-            { name: "Example2" },
-            { name: "ExampleTranslation2" }
-        ],
-        req: [
-            [0, "all", [1]] // Card 1: Translation is required
-        ],
-        css: templates.css,
-        tmpls: [{
-            name: "Card 1 (Reversed)",
-            qfmt: "{{Translation}}",
-            afmt: "{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}"
-        }]
-    });
-
-    const deckId = await generateDeckId(deckName);
-    const d = new Deck(deckId, deckName);
-
-    console.log(`Generating package for ${cards.length} cards...`);
-    cards.forEach(card => {
-        const n = new Note(m, [
-            card.phrase || "",
-            card.translation || "",
-            card.example || "",
-            card.example_translation || "",
-            card.example2 || "",
-            card.example_translation2 || ""
-        ]);
-        d.addNote(n);
-    });
-    console.log(`Deck has ${d.notes.length} notes.`);
-
     const p = new Package();
-    p.addDeck(d);
+    const db = new window.SQL.Database();
+    p.setSqlJs(db);
 
-    if (generateReversed) {
-        const reversedDeckName = `${deckName} (Reversed)`;
-        const reversedDeckId = await generateDeckId(reversedDeckName);
-        const reversedDeck = new Deck(reversedDeckId, reversedDeckName);
+    try {
+        const frontTemplate = {
+            name: "Card 1",
+            qfmt: templates.front,
+            afmt: templates.back
+        };
+
+        const m = new Model({
+            id: 13371337,
+            name: "Markdown2Anki Model",
+            flds: [
+                { name: "Phrase" },
+                { name: "Translation" },
+                { name: "Example" },
+                { name: "ExampleTranslation" },
+                { name: "Example2" },
+                { name: "ExampleTranslation2" }
+            ],
+            req: [
+                [0, "all", [0]] // Card 1: Phrase is required
+            ],
+            css: templates.css,
+            tmpls: [frontTemplate]
+        });
+
+        const reversedModel = new Model({
+            id: 13371338, // Different ID for the reversed model
+            name: "Markdown2Anki Model (Reversed)",
+            flds: [
+                { name: "Phrase" },
+                { name: "Translation" },
+                { name: "Example" },
+                { name: "ExampleTranslation" },
+                { name: "Example2" },
+                { name: "ExampleTranslation2" }
+            ],
+            req: [
+                [0, "all", [1]] // Card 1: Translation is required
+            ],
+            css: templates.css,
+            tmpls: [{
+                name: "Card 1 (Reversed)",
+                qfmt: "{{Translation}}",
+                afmt: `{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}`
+            }]
+        });
+
+        const selectedModel = generateReversed ? reversedModel : m;
+        const currentDeckName = generateReversed ? `${deckName} (Reversed)` : deckName;
+        const deckId = await generateDeckId(currentDeckName);
+        const d = new Deck(deckId, currentDeckName);
+
         cards.forEach(card => {
-            const n = new Note(reversedModel, [
+            const n = new Note(selectedModel, [
                 card.phrase || "",
                 card.translation || "",
                 card.example || "",
@@ -188,16 +174,11 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
                 card.example2 || "",
                 card.example_translation2 || ""
             ]);
-            reversedDeck.addNote(n);
+            d.addNote(n);
         });
-        p.addDeck(reversedDeck);
-    }
 
-    // Create DB instance manually
-    const db = new window.SQL.Database();
-    p.setSqlJs(db);
+        p.addDeck(d);
 
-    try {
         // Run Schema
         db.run(APKG_SCHEMA);
 
@@ -240,7 +221,7 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const url = URL.createObjectURL(zipBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${deckName}.apkg`;
+        a.download = `${currentDeckName}.apkg`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
