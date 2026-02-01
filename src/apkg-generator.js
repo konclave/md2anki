@@ -167,8 +167,8 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
 
         cards.forEach(card => {
             const ankiNote = new Note(selectedModel, [
-                card.phrase || "",
-                card.translation || "",
+                (reversedModel ? card.translation : card.phrase) || "",
+                (reversedModel ? card.phrase : card.translation) || "",
                 card.example || "",
                 card.exampleTranslation || "",
                 card.example2 || "",
