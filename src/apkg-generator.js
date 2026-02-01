@@ -94,6 +94,14 @@ async function generateDeckId(deckName) {
     return deckId;
 }
 
+function generateNoteGuid(deckName, index) {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+        return globalThis.crypto.randomUUID();
+    }
+    const suffix = Math.random().toString(36).slice(2);
+    return `${deckName}-${index}-${Date.now()}-${suffix}`;
+}
+
 export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown2Anki Deck', generateReversed = false) {
     // Ensure SQL.js is initialized and available globally
     if (!window.SQL) {
@@ -114,12 +122,6 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
     ankiPackage.setSqlJs(db);
 
     try {
-        const frontTemplate = {
-            name: "Card 1",
-            qfmt: templates.front,
-            afmt: templates.back
-        };
-
         const ankiModel = new Model({
             id: 13371337,
             name: "Markdown2Anki Model",
@@ -135,7 +137,11 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
                 [0, "all", [0]] // Card 1: Phrase is required
             ],
             css: templates.css,
-            tmpls: [frontTemplate]
+            tmpls: [{
+                name: "Card 1",
+                qfmt: templates.front,
+                afmt: templates.back
+            }]
         });
 
         const reversedModel = new Model({
@@ -155,8 +161,8 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
             css: templates.css,
             tmpls: [{
                 name: "Card 1 (Reversed)",
-                qfmt: "{{Translation}}",
-                afmt: `{{FrontSide}}\n\n<hr id=answer>\n\n{{Phrase}}`
+                qfmt: templates.front,
+                afmt: templates.back
             }]
         });
 
@@ -165,15 +171,16 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const deckId = await generateDeckId(currentDeckName);
         const ankiDeck = new Deck(deckId, currentDeckName);
 
-        cards.forEach(card => {
+        cards.forEach((card, index) => {
+            const isReversed = generateReversed;
             const ankiNote = new Note(selectedModel, [
-                (reversedModel ? card.translation : card.phrase) || "",
-                (reversedModel ? card.phrase : card.translation) || "",
+                (isReversed ? card.translation : card.phrase) || "",
+                (isReversed ? card.phrase : card.translation) || "",
                 card.example || "",
                 card.exampleTranslation || "",
                 card.example2 || "",
                 card.exampleTranslation2 || ""
-            ]);
+            ], null, generateNoteGuid(currentDeckName, index));
             ankiDeck.addNote(ankiNote);
         });
 
