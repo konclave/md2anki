@@ -1,3 +1,5 @@
+export const MAX_EXAMPLES = 5;
+
 // Markdown parsing logic
 export function parseMarkdown(content) {
     const cards = [];
@@ -19,40 +21,28 @@ export function parseMarkdown(content) {
 
         if (headerMatch) {
             const { phrase, translation } = headerMatch.groups;
-            let example = '';
-            let exampleTranslation = '';
-            let example2 = '';
-            let exampleTranslation2 = '';
+            const examples = [];
 
-            // Look for example in remaining lines
+            // Look for examples in remaining lines
             const exampleRegex = /^(?<example>.+?)\s*\|\s*(?<example_translation>.+)$/;
-            let exampleCount = 0;
 
             for (let lineIndex = 1; lineIndex < lines.length; lineIndex++) {
                 const line = lines[lineIndex].trim();
                 if (!line) continue;
                 const exampleMatch = line.match(exampleRegex);
                 if (exampleMatch) {
-                    if (exampleCount === 0) {
-                        example = exampleMatch.groups.example;
-                        exampleTranslation = exampleMatch.groups.example_translation;
-                        exampleCount++;
-                    } else if (exampleCount === 1) {
-                        example2 = exampleMatch.groups.example;
-                        exampleTranslation2 = exampleMatch.groups.example_translation;
-                        exampleCount++;
-                        break; // Stop after 2 examples
-                    }
+                    examples.push({
+                        text: exampleMatch.groups.example.trim(),
+                        translation: exampleMatch.groups.example_translation.trim()
+                    });
+                    if (examples.length === MAX_EXAMPLES) break;
                 }
             }
 
             cards.push({
                 phrase: phrase.trim(),
                 translation: translation.trim(),
-                example: example.trim(),
-                exampleTranslation: exampleTranslation.trim(),
-                example2: example2.trim(),
-                exampleTranslation2: exampleTranslation2.trim()
+                examples
             });
         }
     }
