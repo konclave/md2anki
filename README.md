@@ -18,10 +18,13 @@ The converter expects your Markdown file to follow a specific structure for each
 ### **Phrase/Word** Translation
 
 Example Sentence | Translation of Example
+Another Example Sentence | Translation of Another Example
 ```
 
 -   **Header**: Starts with `###`, followed by the bolded phrase/word, and then the translation.
--   **Body**: The example sentence followed by a pipe `|` and its translation.
+-   **Body**: Up to 5 lines, each with an example sentence followed by a pipe `|` and its translation. Extra examples are ignored.
+
+The card front shows the phrase and the translations of all examples; the back additionally shows the translation and every example with its translation.
 
 **Example:**
 
@@ -48,7 +51,7 @@ Since this is a static web application, no complex installation is required.
     -   Generate and download the CSV file from the web app.
     -   Open Anki and choose **File > Import**.
     -   Select the downloaded CSV file.
-    -   Map the fields accordingly (Phrase, Translation, Example, Example Translation).
+    -   Map the fields accordingly (Phrase, Translation, Example, ExampleTranslation, Example2, ExampleTranslation2, … up to Example5, ExampleTranslation5).
     -   (Optional) Use the provided HTML/CSS templates in the `card-template` folder to style your cards.
 
 ## Project Structure

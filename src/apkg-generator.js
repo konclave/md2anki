@@ -3,6 +3,7 @@ import { Model, Deck, Package, Note } from 'genanki-js';
 import initSqlJs from 'sql.js';
 import sqlWasm from 'sql.js/dist/sql-wasm.wasm';
 import JSZip from 'jszip';
+import { FIELD_NAMES, cardToFields } from './fields.js';
 
 const APKG_SCHEMA = `
 PRAGMA foreign_keys=OFF;
@@ -125,14 +126,7 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const ankiModel = new Model({
             id: 13371337,
             name: "Markdown2Anki Model",
-            flds: [
-                { name: "Phrase" },
-                { name: "Translation" },
-                { name: "Example" },
-                { name: "ExampleTranslation" },
-                { name: "Example2" },
-                { name: "ExampleTranslation2" }
-            ],
+            flds: FIELD_NAMES.map(name => ({ name })),
             req: [
                 [0, "all", [0]] // Card 1: Phrase is required
             ],
@@ -147,14 +141,7 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const reversedModel = new Model({
             id: 13371338, // Different ID for the reversed model
             name: "Markdown2Anki Model (Reversed)",
-            flds: [
-                { name: "Phrase" },
-                { name: "Translation" },
-                { name: "Example" },
-                { name: "ExampleTranslation" },
-                { name: "Example2" },
-                { name: "ExampleTranslation2" }
-            ],
+            flds: FIELD_NAMES.map(name => ({ name })),
             req: [
                 [0, "all", [1]] // Card 1: Translation is required
             ],
@@ -172,15 +159,8 @@ export async function downloadAnkiPackage(cards, templates, deckName = 'Markdown
         const ankiDeck = new Deck(deckId, currentDeckName);
 
         cards.forEach((card, index) => {
-            const isReversed = generateReversed;
-            const ankiNote = new Note(selectedModel, [
-                (isReversed ? card.translation : card.phrase) || "",
-                (isReversed ? card.phrase : card.translation) || "",
-                card.example || "",
-                card.exampleTranslation || "",
-                card.example2 || "",
-                card.exampleTranslation2 || ""
-            ], null, generateNoteGuid(currentDeckName, index));
+            const fields = cardToFields(card, generateReversed);
+            const ankiNote = new Note(selectedModel, FIELD_NAMES.map(name => fields[name]), null, generateNoteGuid(currentDeckName, index));
             ankiDeck.addNote(ankiNote);
         });
 

@@ -4,6 +4,7 @@ import '@fortawesome/fontawesome-free/css/all.css';
 import './style.css';
 import { parseMarkdown } from './parser.js';
 import { downloadAnkiPackage } from './apkg-generator.js';
+import { cardToFields, renderTemplate } from './fields.js';
 
 // State
 let cards = [];
@@ -159,20 +160,11 @@ function renderPreview() {
     style.textContent = templates.css;
 
     // Render HTML
-    let html = '';
-    const renderFront = (card) => {
-        return templates.front.replace(/{{Phrase}}/g, card.phrase || '');
-    };
-
-    if (currentTab === 'front') {
-        html = renderFront(card);
-    } else {
-        html = templates.back
-            .replace(/{{FrontSide}}/g, renderFront(card))
-            .replace(/{{Translation}}/g, card.translation || '')
-            .replace(/{{Example}}/g, card.example || '')
-            .replace(/{{ExampleTranslation}}/g, card.exampleTranslation || '');
-    }
+    const fields = cardToFields(card);
+    const front = renderTemplate(templates.front, fields);
+    const html = currentTab === 'front'
+        ? front
+        : renderTemplate(templates.back, { ...fields, FrontSide: front });
 
     shadow.innerHTML = '';
     shadow.appendChild(style);
